@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{13ADDC53-A8FC-4354-803A-9AA072510BBC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Beaver3D</RootNamespace>
+    <AssemblyName>Beaver3D</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Gurobi90.NET">
+      <HintPath>D:\ProgrammingPackage\Gurobi903\win64\bin\Gurobi90.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FEA\Bar3D.cs" />
+    <Compile Include="FEA\Beam3D.cs" />
+    <Compile Include="FEA\FEAMethod.cs" />
+    <Compile Include="FEA\FEAnalysisMethod.cs" />
+    <Compile Include="FEA\FEAOptions.cs" />
+    <Compile Include="FEA\FiniteElement.cs" />
+    <Compile Include="FEA\FiniteElementAnalysis.cs" />
+    <Compile Include="FEA\LinearElastic.cs" />
+    <Compile Include="LCA\GHGFrontiers.cs" />
+    <Compile Include="LCA\ILCA.cs" />
+    <Compile Include="LinearAlgebra\MatrixDense.cs" />
+    <Compile Include="LinearAlgebra\MatrixSolver.cs" />
+    <Compile Include="LinearAlgebra\Solvers\ConjugateGradient.cs" />
+    <Compile Include="LinearAlgebra\Solvers\GaussJordan.cs" />
+    <Compile Include="LinearAlgebra\Vector.cs" />
+    <Compile Include="Model\Bar.cs" />
+    <Compile Include="Model\Beam.cs" />
+    <Compile Include="Model\BucklingType.cs" />
+    <Compile Include="Model\CrossSections\CircularHollowSection.cs" />
+    <Compile Include="Model\CrossSections\CircularSection.cs" />
+    <Compile Include="Model\CrossSections\EC3Helper.cs" />
+    <Compile Include="Model\CrossSections\EmptySection.cs" />
+    <Compile Include="Model\CrossSections\GenericSection.cs" />
+    <Compile Include="Model\CrossSections\HEASection.cs" />
+    <Compile Include="Model\CrossSections\ICrossSection.cs" />
+    <Compile Include="Model\CrossSections\IPESection.cs" />
+    <Compile Include="Model\CrossSections\LSection.cs" />
+    <Compile Include="Model\CrossSections\RectangularSection.cs" />
+    <Compile Include="Model\CrossSections\RHSection.cs" />
+    <Compile Include="Model\CrossSections\SHSection.cs" />
+    <Compile Include="Model\DisplacementBound.cs" />
+    <Compile Include="Model\ILoad.cs" />
+    <Compile Include="Model\IMember.cs" />
+    <Compile Include="Model\IMember1D.cs" />
+    <Compile Include="Model\LoadCase.cs" />
+    <Compile Include="Model\Materials\EmptyMaterial.cs" />
+    <Compile Include="Model\Materials\IMaterial.cs" />
+    <Compile Include="Model\Materials\MaterialType.cs" />
+    <Compile Include="Model\Materials\Steel.cs" />
+    <Compile Include="Model\Materials\Timber.cs" />
+    <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\PointLoad.cs" />
+    <Compile Include="Model\SortStructureMembersBy.cs" />
+    <Compile Include="Model\Structure.cs" />
+    <Compile Include="Model\Support.cs" />
+    <Compile Include="Optimization\Assignment.cs" />
+    <Compile Include="Optimization\LightCallback.cs" />
+    <Compile Include="Optimization\LogCallback.cs" />
+    <Compile Include="Optimization\LPOptimizer.cs" />
+    <Compile Include="Optimization\MILPFormulation.cs" />
+    <Compile Include="Optimization\MILPOptimizer.cs" />
+    <Compile Include="Optimization\MyListBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Optimization\MyLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Optimization\MyLog.Designer.cs">
+      <DependentUpon>MyLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Optimization\NLPOptimizer.cs" />
+    <Compile Include="Optimization\Objective.cs" />
+    <Compile Include="Optimization\OptimOptions.cs" />
+    <Compile Include="Optimization\Result.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiContinuous.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiDiscreteBR.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiDiscreteGG.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiDiscreteNP.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiDiscreteRS.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiReuse.cs" />
+    <Compile Include="Optimization\TopologyOptimization\ContinuousTrussTopologyOptimization.cs" />
+    <Compile Include="Optimization\TopologyOptimization\DiscreateSectionReuseOptimization.cs" />
+    <Compile Include="Optimization\TopologyOptimization\DiscreteStockConstrainedOptimization.cs" />
+    <Compile Include="Optimization\TopologyOptimization\DiscreteTrussTopologyOptimization.cs" />
+    <Compile Include="Optimization\Utilization.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.cs" />
+    <Compile Include="Reuse\ElementGroup.cs" />
+    <Compile Include="Reuse\ElementType.cs" />
+    <Compile Include="Reuse\Heuristics\BestFit.cs" />
+    <Compile Include="Reuse\SortStockElementsBy.cs" />
+    <Compile Include="Reuse\Stock.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Optimization\MyLog.resx">
+      <DependentUpon>MyLog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).dll"
+Copy "$(TargetPath)" "C:\Users\DELL\AppData\Roaming\Grasshopper\Libraries\Beaver\Beaver3D.dll"
+Erase "$(TargetPath)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>
