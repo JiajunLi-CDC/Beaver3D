@@ -15,6 +15,9 @@ namespace Beaver3D.Model
 		// 所有的节点
 		public List<Node> Nodes { get; private set; } = new List<Node>();
 
+
+		public int merge_structure_num = 1;
+
 		// 荷载
 		public List<LoadCase> LoadCases { get; private set; } = new List<LoadCase>();
 
@@ -319,7 +322,7 @@ namespace Beaver3D.Model
 		}
 
 
-		// Token: 0x060002C6 RID: 710 RVA: 0x00013088 File Offset: 0x00011288
+		// 判断是否所有的杆件都拓扑固定
 		public bool AllTopologyFixed()
 		{
 			foreach (IMember member in this.Members)

@@ -7,7 +7,7 @@ using Beaver3D.Reuse;
 
 namespace Beaver3D.Optimization.SAND
 {
-	// Token: 0x0200001C RID: 28
+	// 使用BR的方法进行计算
 	public static class SANDGurobiDiscreteBR
 	{
 		// Token: 0x06000113 RID: 275 RVA: 0x0000A1C4 File Offset: 0x000083C4
@@ -240,7 +240,7 @@ namespace Beaver3D.Optimization.SAND
 			}
 		}
 
-		// Token: 0x0600011C RID: 284 RVA: 0x0000AEA8 File Offset: 0x000090A8
+		// BIGM用法
 		public static void AddBigM(GRBModel model, GRBVar[] T, GRBVar[] MemberElongations, Structure Structure, LoadCase LC, Stock Stock, OptimOptions Options)
 		{
 			foreach (IMember member in Structure.Members)

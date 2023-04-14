@@ -304,7 +304,7 @@ namespace Beaver3D.Optimization.SAND
                         IMember1D member1D = (IMember1D)member;
                         grblinExpr.AddTerm(member1D.Length, T[member1D.Number * Stock.ElementGroups.Count + i]);
                     }
-                    model.AddConstr(grblinExpr, '<', Stock.ElementGroups[i].Length * Y[i], "Length_" + Stock.ElementGroups[i].Number.ToString());
+                    model.AddConstr(grblinExpr, '<', Stock.ElementGroups[i].Length * Y[i], "Length_" + Stock.ElementGroups[i].Number.ToString());                  
                 }
             }
         }
