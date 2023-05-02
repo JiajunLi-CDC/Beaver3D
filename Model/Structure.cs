@@ -20,7 +20,10 @@ namespace Beaver3D.Model
         public int merge_structure_num = 1;
 
         //每个杆件最终的生产长度（按每个聚类最小的长度生产）
-        public List<double> member_expectLenth = new List<double>();
+        public List<double> member_prductionLenth = new List<double>();
+
+        //最终生产的总杆件数量
+        public double totalProduce_number = 0;
 
         // 荷载
         public List<LoadCase> LoadCases { get; private set; } = new List<LoadCase>();
@@ -431,6 +434,23 @@ namespace Beaver3D.Model
             return result;
         }
 
+        public void setMemberProductionLength(double tolerance)   //t值一般大于某个聚类中杆件差距的最大值，小于聚类之间长度差距的最小值
+        {
+            for (int i = 0; i < this.Members.Count; i++)
+            {
+                for (int j = 0; j < this.member_prductionLenth.Count; j++)
+                {
+                    IMember M = this.Members[i];
+                    Bar bar = M as Bar;
+                    if (Math.Abs(bar.Length - this.member_prductionLenth[j]) < tolerance)
+                    {
+                        bar.Production_length = this.member_prductionLenth[j];
+                        break;
+                    }
+                }             
+            }
+        }
+
         // Token: 0x060002C8 RID: 712 RVA: 0x0001318C File Offset: 0x0001138C
         public void SortMembers1D(SortStructureMembersBy SortBy)
         {
@@ -508,6 +528,8 @@ namespace Beaver3D.Model
             structure.NFreeRotations = this.NFreeRotations;
             structure.SortBy = this.SortBy;
             structure.merge_structure_num = this.merge_structure_num;
+            structure.member_prductionLenth = this.member_prductionLenth;
+            structure.totalProduce_number = this.totalProduce_number;
             foreach (int item2 in this.SortMap)
             {
                 structure.SortMap.Add(item2);
@@ -561,6 +583,8 @@ namespace Beaver3D.Model
             structure.NFreeRotations = this.NFreeRotations;
             structure.merge_structure_num = this.merge_structure_num;
             structure.SortBy = this.SortBy;
+            structure.member_prductionLenth = this.member_prductionLenth;
+            structure.totalProduce_number = this.totalProduce_number;
             foreach (int item2 in this.SortMap)
             {
                 structure.SortMap.Add(item2);

@@ -392,6 +392,7 @@ namespace Beaver3D.Model
 			bar.CrossSection = this.CrossSection;
 			bar.Material = this.Material;
 			bar.structure_num = this.structure_num;
+			bar.Production_length = this.Production_length;
 			bar.CosX = this.CosX;
 			bar.CosY = this.CosY;
 			bar.CosZ = this.CosZ;
@@ -437,6 +438,7 @@ namespace Beaver3D.Model
 			bar.CrossSection = this.CrossSection;
 			bar.Material = this.Material;
 			bar.structure_num = this.structure_num;
+			bar.Production_length = this.Production_length;
 			bar.CosX = this.CosX;
 			bar.CosY = this.CosY;
 			bar.CosZ = this.CosZ;

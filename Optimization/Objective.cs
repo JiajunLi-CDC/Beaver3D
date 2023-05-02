@@ -6,14 +6,16 @@ namespace Beaver3D.Optimization
 	public enum Objective
 	{
 		// 枚举各项优化目标
-		MinStructureMass,
-		// Token: 0x0400005F RID: 95
-		MinStockMass,
-		// Token: 0x04000060 RID: 96
-		MinWaste,
-		// Token: 0x04000061 RID: 97
-		MinLCA,
 
+		// 0
+		MinStructureMass,
+		// 1
+		MinStockMass,
+		// 2
+		MinWaste,
+		// 3
+		MinLCA,
+		// 4......最大化多结构重复利用率
 		MaxReuseRate,
 
 	}

@@ -29,6 +29,9 @@ namespace Beaver3D.Model
 		// (set) Token: 0x060001DC RID: 476 RVA: 0x00010CD8 File Offset: 0x0000EED8
 		public int GroupNumber { get; set; } = -1;
 
+		//构件生产长度
+		public double Production_length { get; set; }
+
 		// Token: 0x1700008C RID: 140
 		// (get) Token: 0x060001DD RID: 477 RVA: 0x00010CE1 File Offset: 0x0000EEE1
 		// (set) Token: 0x060001DE RID: 478 RVA: 0x00010CE9 File Offset: 0x0000EEE9
@@ -559,6 +562,53 @@ namespace Beaver3D.Model
 			beam.NormalOverwritten = this.NormalOverwritten;
 			beam.AllowedCrossSections = this.AllowedCrossSections;
 			beam.GroupNumber = this.GroupNumber;
+			bool flag = this.Assignment == null;
+			if (flag)
+			{
+				beam.Assignment = null;
+			}
+			else
+			{
+				beam.Assignment = this.Assignment.Clone();
+			}
+			return beam;
+		}
+
+		public Beam CloneBeam()
+		{
+			Beam beam = new Beam(this.From, this.To);
+			beam.Number = this.Number;
+			beam.CrossSection = this.CrossSection;
+			beam.Material = this.Material;
+			beam.structure_num = this.structure_num;
+			beam.Production_length = this.Production_length;
+			beam.CosX = this.CosX;
+			beam.CosY = this.CosY;
+			beam.CosZ = this.CosZ;
+			beam.Length = this.Length;
+			beam.Direction = new Vector((double[])this.Direction.ToDouble().Clone());
+			beam.Normal = new Vector((double[])this.Normal.ToDouble().Clone());
+			beam.T = new MatrixDense((double[,])this.T.ToDouble().Clone());
+			beam.MinCompound = this.MinCompound;
+			beam.MaxCompound = this.MaxCompound;
+			beam.Nx = new Dictionary<LoadCase, List<double>>();
+			foreach (LoadCase loadCase in this.Nx.Keys)
+			{
+				LoadCase key = loadCase.Clone();
+				beam.Nx.Add(key, this.Nx[loadCase]);
+			}
+			beam.Buffer = new ValueTuple<double, double>(this.Buffer.Item1, this.Buffer.Item2);
+			beam.BucklingType = this.BucklingType;
+			beam.BucklingLength = this.BucklingLength;
+			beam.LBArea = this.LBArea;
+			beam.UBArea = this.UBArea;
+			beam.TopologyFixed = this.TopologyFixed;
+			beam.NormalUserDefined = this.NormalUserDefined;
+			beam.NormalOverwritten = this.NormalOverwritten;
+			beam.AllowedCrossSections = this.AllowedCrossSections;
+			beam.GroupNumber = this.GroupNumber;
+
+			//bar.Assignment = null;
 			bool flag = this.Assignment == null;
 			if (flag)
 			{

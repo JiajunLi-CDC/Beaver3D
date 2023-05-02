@@ -119,7 +119,7 @@
     <Compile Include="Optimization\SAND\SANDGurobiDistributeJJ.cs" />
     <Compile Include="Optimization\SAND\SANDGurobiReuse.cs" />
     <Compile Include="Optimization\TopologyOptimization\ContinuousTrussTopologyOptimization.cs" />
-    <Compile Include="Optimization\TopologyOptimization\DiscreateSectionReuseOptimization.cs" />
+    <Compile Include="Optimization\TopologyOptimization\DiscreateMultyStructureReuseOptimization.cs" />
     <Compile Include="Optimization\TopologyOptimization\DiscreteStockConstrainedOptimization.cs" />
     <Compile Include="Optimization\TopologyOptimization\DiscreteTrussTopologyOptimization.cs" />
     <Compile Include="Optimization\Utilization.cs" />

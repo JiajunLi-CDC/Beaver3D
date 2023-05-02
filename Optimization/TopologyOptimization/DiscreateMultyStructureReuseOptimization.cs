@@ -16,7 +16,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
      * 更新于2023.4.21
      * programmed by Jiajun Li
      */
-    public class DiscreateSectionReuseOptimization
+    public class DiscreateMultyStructureReuseOptimization
     {
         //目标
         public Objective Objective { get; private set; } = Objective.MaxReuseRate;   //默认目标最小结构质量
@@ -40,7 +40,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
         public double Runtime { get; private set; } = 0.0;
 
         // 实例化对象
-        public DiscreateSectionReuseOptimization(Objective Objective, OptimOptions Options = null)
+        public DiscreateMultyStructureReuseOptimization(Objective Objective, OptimOptions Options = null)
         {
             this.Objective = Objective;
             bool flag = Options == null;
@@ -132,7 +132,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
             //添加Gurobi约束
             //设计分配约束，每一个杆件只分配了一个库存元素
             SANDGurobiDiscreteBR.AddAssignment(grbmodel, gurobiAssignmentVariables, Structure, Stock, this.Options);
-            //分配最大用量约束
+            //分配最大用量约束(多结构用)
             SANDGurobiDistributeJJ.OnlyOneIsLargestUse(grbmodel, gurobiAssignmentIsLargeVariables, Structure, Stock);
             SANDGurobiDistributeJJ.LargerThanOther(grbmodel, gurobiAssignmentVariables, gurobiAssignmentIsLargeVariables, Structure, Stock);
 
@@ -240,6 +240,29 @@ namespace Beaver3D.Optimization.TopologyOptimization
                             this.UpperBounds.Add(new Tuple<double, double>(grbmodel.Runtime, grbmodel.ObjVal));
                         }
 
+                        double totalMemberCount = 0;
+                        for (int i = 0; i < Stock.ElementGroups.Count; i++)   //每库存个组
+                        {
+                            for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
+                            {
+                                for (int k = 0; k < Structure.merge_structure_num; k++)    //每个结构
+                                {
+                                    foreach (IMember member in Structure.Members)  //对于每个杆件
+                                    {
+                                        IMember1D member1D = (IMember1D)member;
+
+                                        if (member1D.Production_length == Structure.member_prductionLenth[j])  //如果杆件长度等于目标长度，结构等于目标结构
+                                        {
+                                            if (member1D.structure_num == k)
+                                            {
+                                                totalMemberCount += gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X * gurobiAssignmentIsLargeVariables[i, j, k].X;  //每个库存组的相同长度，相同结构的杆件数量
+                                            }
+                                        }
+                                    }                                 
+                                }
+                            }
+                        }
+                        Structure.totalProduce_number = totalMemberCount;
 
                         foreach (IMember member in Structure.Members)
                         {
