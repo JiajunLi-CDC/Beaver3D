@@ -174,6 +174,8 @@ namespace Beaver3D.Model
 		// (set) Token: 0x06000216 RID: 534 RVA: 0x00010EC5 File Offset: 0x0000F0C5
 		public Assignment Assignment { get; set; } = new Assignment();
 
+		public int structure_num { get; set; } = 0;
+
 		// Token: 0x06000217 RID: 535 RVA: 0x00010ECE File Offset: 0x0000F0CE
 		public void SetNumber(int MemberNumber)
 		{

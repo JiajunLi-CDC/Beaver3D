@@ -12,6 +12,9 @@ namespace Beaver3D.Optimization
 		// Token: 0x04000060 RID: 96
 		MinWaste,
 		// Token: 0x04000061 RID: 97
-		MinLCA
+		MinLCA,
+
+		MaxReuseRate,
+
 	}
 }

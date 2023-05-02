@@ -14,11 +14,13 @@ namespace Beaver3D.Model
 
 		Node To { get; set; }
 
+		//杆件截面大小
 		ICrossSection CrossSection { get; set; }
 
+		//杆件长度
 		double Length { get; set; }
 
-		Vector Direction { get; set; }
+        Vector Direction { get; set; }
 
 		Vector Normal { get; set; }
 

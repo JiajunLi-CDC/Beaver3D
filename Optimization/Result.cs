@@ -135,7 +135,7 @@ namespace Beaver3D.Optimization
 			this.Utilization = Result.GetUtilization(Structure);
 		}
 
-		// Token: 0x060000C5 RID: 197 RVA: 0x0000555C File Offset: 0x0000375C
+		// 初始化结果，这里每次初始化会修改杆件的属性？
 		public Result(Structure Structure, ILCA LCA = null)
 		{
 			foreach (IMember member in Structure.Members)

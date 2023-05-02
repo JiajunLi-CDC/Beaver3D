@@ -20,6 +20,9 @@ namespace Beaver3D.Model
 		//杆件材料
 		public IMaterial Material { get; set; }
 
+		//构件生产长度
+		public double Production_length { get; set; }
+
 		//杆件截面
 		public ICrossSection CrossSection { get; set; }
 
@@ -96,6 +99,8 @@ namespace Beaver3D.Model
 
 		// 设置分配
 		public Assignment Assignment { get; set; } = new Assignment();
+
+        public int structure_num { get; set; } = 0;
 
 		// 实例化杆件
 		public Bar(Node From, Node To)
@@ -386,6 +391,7 @@ namespace Beaver3D.Model
 			bar.Number = this.Number;
 			bar.CrossSection = this.CrossSection;
 			bar.Material = this.Material;
+			bar.structure_num = this.structure_num;
 			bar.CosX = this.CosX;
 			bar.CosY = this.CosY;
 			bar.CosZ = this.CosZ;
@@ -422,5 +428,52 @@ namespace Beaver3D.Model
 			}
 			return bar;
 		}
+
+
+		public Bar CloneBar()
+		{
+			Bar bar = new Bar(this.From, this.To);
+			bar.Number = this.Number;
+			bar.CrossSection = this.CrossSection;
+			bar.Material = this.Material;
+			bar.structure_num = this.structure_num;
+			bar.CosX = this.CosX;
+			bar.CosY = this.CosY;
+			bar.CosZ = this.CosZ;
+			bar.Length = this.Length;
+			bar.Direction = new Vector((double[])this.Direction.ToDouble().Clone());
+			bar.Normal = new Vector((double[])this.Normal.ToDouble().Clone());
+			bar.T = new MatrixDense((double[,])this.T.ToDouble().Clone());
+			bar.MinCompound = this.MinCompound;
+			bar.MaxCompound = this.MaxCompound;
+			bar.Nx = new Dictionary<LoadCase, List<double>>();
+			foreach (LoadCase loadCase in this.Nx.Keys)
+			{
+				LoadCase key = loadCase.Clone();
+				bar.Nx.Add(key, this.Nx[loadCase]);
+			}
+			bar.Buffer = new ValueTuple<double, double>(this.Buffer.Item1, this.Buffer.Item2);
+			bar.BucklingType = this.BucklingType;
+			bar.BucklingLength = this.BucklingLength;
+			bar.LBArea = this.LBArea;
+			bar.UBArea = this.UBArea;
+			bar.TopologyFixed = this.TopologyFixed;
+			bar.NormalUserDefined = this.NormalUserDefined;
+			bar.NormalOverwritten = this.NormalOverwritten;
+			bar.AllowedCrossSections = this.AllowedCrossSections;
+			bar.GroupNumber = this.GroupNumber;
+
+			//bar.Assignment = null;
+            bool flag = this.Assignment == null;
+            if (flag)
+            {
+                bar.Assignment = null;
+            }
+            else
+            {
+                bar.Assignment = this.Assignment.Clone();
+            }
+            return bar;
+        }
 	}
 }

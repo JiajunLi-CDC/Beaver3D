@@ -9,8 +9,14 @@ namespace Beaver3D.Model
 		// 杆件编号
 		int Number { get; set; }
 
-		// 所属结构编号
+		// 所属分组编号？
 		int GroupNumber { get; set; }
+
+		//所属结构的索引编号
+		int structure_num { get; set; }
+
+		//每个构件的生产长度（多结构优化用）
+		double Production_length { get; set; }
 
 		// 材质
 		IMaterial Material { get; set; }
