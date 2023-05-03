@@ -107,6 +107,11 @@ namespace Beaver3D.Reuse
 			}
 		}
 
+		public ElementGroup()
+        {
+
+        }
+
 		// Token: 0x06000044 RID: 68 RVA: 0x00002994 File Offset: 0x00000B94
 		public ElementGroup(IMaterial Material, ICrossSection CrossSection, string Name = null)
 		{

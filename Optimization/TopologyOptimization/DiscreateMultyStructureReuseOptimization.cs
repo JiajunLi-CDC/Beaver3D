@@ -13,7 +13,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
 {
     /*
      * 此方法用于计算多个现有可重复利用结构之间的杆件截面，目标是最大化杆件的重复利用率
-     * 更新于2023.4.21
+     * 更新于2023.5.3
      * programmed by Jiajun Li
      */
     public class DiscreateMultyStructureReuseOptimization
@@ -38,6 +38,15 @@ namespace Beaver3D.Optimization.TopologyOptimization
 
         // 优化过程时间
         public double Runtime { get; private set; } = 0.0;
+
+        //优化结果
+        public OptimizeResultJJ resultJJ { get; private set; } = new OptimizeResultJJ();
+
+        //生产结果
+        public List<string> ProductionResults { get; set; } = new List<string>();
+
+        //库存使用结果
+        public List<string> StockUseResults { get; set; } = new List<string>();
 
         // 实例化对象
         public DiscreateMultyStructureReuseOptimization(Objective Objective, OptimOptions Options = null)
@@ -134,7 +143,9 @@ namespace Beaver3D.Optimization.TopologyOptimization
             SANDGurobiDiscreteBR.AddAssignment(grbmodel, gurobiAssignmentVariables, Structure, Stock, this.Options);
             //分配最大用量约束(多结构用)
             SANDGurobiDistributeJJ.OnlyOneIsLargestUse(grbmodel, gurobiAssignmentIsLargeVariables, Structure, Stock);
+            SANDGurobiDistributeJJ.OneIsLargestTheSameInOtherSection(grbmodel, gurobiAssignmentIsLargeVariables, Structure, Stock);
             SANDGurobiDistributeJJ.LargerThanOther(grbmodel, gurobiAssignmentVariables, gurobiAssignmentIsLargeVariables, Structure, Stock);
+
 
 
             foreach (LoadCase loadCase in LoadCases)
@@ -171,7 +182,8 @@ namespace Beaver3D.Optimization.TopologyOptimization
             {
                 //SANDGurobiReuse.SetObjective(this.Objective, grbmodel, gurobiAssignmentVariables, Structure, Stock, LCA);
                 SANDGurobiDistributeJJ.SetObjective(this.Objective, grbmodel, gurobiAssignmentVariables, gurobiAssignmentIsLargeVariables, Structure, Stock, LCA);  //设置目标
-                SANDGurobiReuse.AddAvailability(grbmodel, gurobiAssignmentVariables, Structure, Stock);  //库存存量可用约束，对应论文约束（2）
+                //SANDGurobiReuse.AddAvailability(grbmodel, gurobiAssignmentVariables, Structure, Stock);  
+                SANDGurobiDistributeJJ.AddAvailabilityNotCut(grbmodel, gurobiAssignmentVariables, gurobiAssignmentIsLargeVariables, Structure, Stock);   //库存存量可用约束
                 SANDGurobiReuse.AddLength(grbmodel, gurobiAssignmentVariables, Structure, Stock);  //长度约束，分配的库存应该大于结构中的杆件长度
             }
             else  //可切割
@@ -258,108 +270,202 @@ namespace Beaver3D.Optimization.TopologyOptimization
                                                 totalMemberCount += gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X * gurobiAssignmentIsLargeVariables[i, j, k].X;  //每个库存组的相同长度，相同结构的杆件数量
                                             }
                                         }
-                                    }                                 
+                                    }
                                 }
                             }
                         }
                         Structure.totalProduce_number = totalMemberCount;
 
-                        foreach (IMember member in Structure.Members)
+                        this.resultJJ = new OptimizeResultJJ();
+                        for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
                         {
-                            Bar bar = (Bar)member;
-                            bar.Nx.Clear();    //清除杆件的荷载
-                            Assignment assignment = new Assignment();   //记录分配的情况
-                            bool flag6 = false;
-                            bool flag7 = !this.Options.CuttingStock;
-                            if (flag7)  //不切割库存元素
+                            for (int n = 0; n < Stock.crossSectionType.Count; n++)  //针对不同截面组
                             {
-                                for (int i = 0; i < Stock.ElementGroups.Count; i++)    //对于每一个库存元素组，这里的Stock是添加后的
+                                MemberProduceType type = new MemberProduceType(Structure.member_prductionLenth[j], Stock.crossSectionType[n].Area, Stock.crossSectionType[n].Name);
+                                List<IMember> cluster = new List<IMember>();
+
+                                for (int i = 0; i < Stock.ElementGroups.Count; i++)   //每库存个组
                                 {
-                                    bool flag8 = gurobiAssignmentVariables[bar.Number * Stock.ElementGroups.Count + i].X >= 0.999;      //每个结构杆件是否用了该库存的元素，此时为1的话就是使用了
-                                    if (flag8)
-                                    {
-                                        flag6 = true;
-                                        bar.CrossSection = Stock.ElementGroups[i].CrossSection;
-                                        bar.Material = Stock.ElementGroups[i].Material;        //赋予每个杆件的截面尺寸及材料
-
-                                        bool flag9 = Stock.ElementGroups[i].Type == ElementType.Reuse;         //库存的杆件是否是再利用的材料
-                                        if (flag9)
+                                    if (Stock.crossSectionType[n].Name == Stock.ElementGroups[i].CrossSection.Name && Math.Abs(Stock.crossSectionType[n].Area - Stock.ElementGroups[i].CrossSection.Area) < 0.001)
+                                    {//库存组截面等于截面组
+                                        for (int k = 0; k < Structure.merge_structure_num; k++)    //每个结构
                                         {
-                                            assignment.AddElementAssignment(Stock.ElementGroups[i], Stock.ElementGroups[i].Next);    //标记杆件及其所在组内的数量
-                                        }
-                                        else   //杆件是新的制造元素
-                                        {
-                                            assignment.AddElementAssignment(Stock.ElementGroups[i], 0);
-                                        }
-
-
-                                        foreach (LoadCase loadCase2 in LoadCases)             //记录杆件力变量
-                                        {
-                                            bar.AddNormalForce(loadCase2, new List<double>
+                                            foreach (IMember member in Structure.Members)  //对于每个杆件
                                             {
-                                                gurobiMemberForceVariables[loadCase2][bar.Number].X
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                            else    //切割库存元素
-                            {
-                                int num = 0;
-                                foreach (ElementGroup elementGroup in stock.ElementGroups)   //对于每一个库存元素组（这里的stock是原始的）
-                                {
-                                    for (int j = 0; j < elementGroup.NumberOfElements; j++)  //对于每一个库存元素组的每一个元素
-                                    {
-                                        bool flag10 = gurobiAssignmentVariables[bar.Number * Stock.ElementGroups.Count + num + j].X >= 0.999;       //每个结构杆件是否用了该库存的第j个元素，此时为1的话就是使用了，这里？？？？？
-                                        if (flag10)
-                                        {
-                                            flag6 = true;
-                                            bar.CrossSection = elementGroup.CrossSection;
-                                            bar.Material = elementGroup.Material;
-                                            bool flag11 = elementGroup.Type == ElementType.Reuse;
-                                            if (flag11)
-                                            {
-                                                assignment.AddElementAssignment(elementGroup, j);
-                                            }
-                                            else
-                                            {
-                                                assignment.AddElementAssignment(elementGroup, 0);
-                                            }
-                                            foreach (LoadCase loadCase3 in LoadCases)
-                                            {
-                                                bar.AddNormalForce(loadCase3, new List<double>
+                                                IMember1D member1D = (IMember1D)member;
+                                                if (Math.Abs(member1D.Production_length - Structure.member_prductionLenth[j]) < 0.001)  //如果杆件长度等于目标长度，结构等于目标结构
                                                 {
-                                                    gurobiMemberForceVariables[loadCase3][bar.Number].X
-                                                });
+                                                    if (member1D.structure_num == k)
+                                                    {
+                                                        double use = gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X * gurobiAssignmentIsLargeVariables[i, j, k].X;  //每个库存组的相同长度，相同结构的杆件数量
+                                                        if (Math.Abs(use - 1) < 0.001)
+                                                        {
+                                                            cluster.Add(member);
+                                                            type.memberProduceElement.Add(i);
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                    num += elementGroup.NumberOfElements;
                                 }
+                                this.resultJJ.memberProductionType.Add(type, cluster);
                             }
-
-                            bool flag12 = !flag6;  //如果结构的杆件没有使用该库存的元素，意味着这个地方没有杆件（既可以被拓扑优化掉）
-                            if (flag12)
-                            {
-                                assignment.AddElementAssignment(stock.ElementGroups[0], 0);
-                                bar.CrossSection = new EmptySection();
-                                foreach (LoadCase lc in LoadCases)
-                                {
-                                    bar.AddNormalForce(lc, new List<double>
-                                    {
-                                        0.0
-                                    });
-                                }
-                            }
-
-                            bar.SetAssignment(assignment);   //记录每个杆件的分配情况
                         }
-                        Stock.ResetRemainLenghts();
-                        Stock.ResetRemainLenghtsTemp();
-                        Stock.ResetAlreadyCounted();
-                        Stock.ResetNext();
-                        Structure.SetResults(new Result(Structure, stock, LCA));
-                        Structure.SetLCA(LCA);
+
+                        this.ProductionResults = new List<string>();
+                        List<MemberProduceType> keys = new List<MemberProduceType>(this.resultJJ.memberProductionType.Keys);
+                        for (int i = 0; i < keys.Count; i++)
+                        {
+                            MemberProduceType key = keys[i];
+                            List<IMember> value = new List<IMember>();
+                            this.resultJJ.memberProductionType.TryGetValue(key, out value);   //获取对应member列表
+                            for (int j = 0; j < value.Count; j++)
+                            {
+                                IMember1D member1D = (IMember1D)value[j];
+                                string tex = "编号num = " + member1D.Number + "，所属结构为structure" + member1D.structure_num + "的杆件，其生产种类为" + i
+                                                      + ".......长度为" + key.Length
+                                                      + "，截面为" + key.crossSectionTypeName 
+                                                      + ".......所用库存为长度为" + Stock.ElementGroups[key.memberProduceElement[j]].Length + "的Stock-" + key.memberProduceElement[j]
+                                                      + ",一共生产的数量为" + value.Count;
+                                this.ProductionResults.Add(tex);
+                            }
+                        }
+
+                        this.StockUseResults = new List<string>();
+                        for (int i = 0; i < Stock.ElementGroups.Count; i++)  //对于每个库存种类
+                        {
+                            bool flagreuse = Stock.ElementGroups[i].Type == ElementType.Reuse;
+                            if (flagreuse)
+                            {
+                                double use = 0;
+                                for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
+                                {
+                                    for (int k = 0; k < Structure.merge_structure_num; k++)    //每个结构
+                                    {
+                                        foreach (IMember member in Structure.Members)  //对于每个杆件
+                                        {
+                                            IMember1D member1D = (IMember1D)member;
+                                            if (member1D.Production_length == Structure.member_prductionLenth[j])  //如果杆件长度等于目标长度，结构等于目标结构
+                                            {
+                                                if (member1D.structure_num == k)
+                                                {
+                                                    use += gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X * gurobiAssignmentIsLargeVariables[i, j, k].X;  //每个库存组的相同长度，相同结构的杆件数量
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                double use1 = 0;
+                                foreach (IMember member in Structure.Members)
+                                {
+                                    IMember1D member1D = (IMember1D)member;
+                                    use1 += gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X;
+                                }
+                                string tex = "库存组" + i + "生产使用的次数为" + use +"，被结构使用的次数为" + use1;
+                                StockUseResults.Add(tex);
+                            }
+                        }
+
+
+
+                        //foreach (IMember member in Structure.Members)
+                        //{
+                        //    Bar bar = (Bar)member;
+                        //    bar.Nx.Clear();    //清除杆件的荷载
+                        //    Assignment assignment = new Assignment();   //记录分配的情况
+                        //    bool flag6 = false;
+                        //    bool flag7 = !this.Options.CuttingStock;
+                        //    if (flag7)  //不切割库存元素
+                        //    {
+                        //        for (int i = 0; i < Stock.ElementGroups.Count; i++)    //对于每一个库存元素组，这里的Stock是添加后的
+                        //        {
+                        //            bool flag8 = gurobiAssignmentVariables[bar.Number * Stock.ElementGroups.Count + i].X >= 0.999;      //每个结构杆件是否用了该库存的元素，此时为1的话就是使用了
+                        //            if (flag8)
+                        //            {
+                        //                flag6 = true;
+                        //                bar.CrossSection = Stock.ElementGroups[i].CrossSection;
+                        //                bar.Material = Stock.ElementGroups[i].Material;        //赋予每个杆件的截面尺寸及材料
+
+                        //                bool flag9 = Stock.ElementGroups[i].Type == ElementType.Reuse;         //库存的杆件是否是再利用的材料
+                        //                if (flag9)
+                        //                {
+                        //                    assignment.AddElementAssignment(Stock.ElementGroups[i], Stock.ElementGroups[i].Next);    //标记杆件及其所在组内的数量
+                        //                }
+                        //                else   //杆件是新的制造元素
+                        //                {
+                        //                    assignment.AddElementAssignment(Stock.ElementGroups[i], 0);
+                        //                }
+
+
+                        //                foreach (LoadCase loadCase2 in LoadCases)             //记录杆件力变量
+                        //                {
+                        //                    bar.AddNormalForce(loadCase2, new List<double>
+                        //                    {
+                        //                        gurobiMemberForceVariables[loadCase2][bar.Number].X
+                        //                    });
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //    else    //切割库存元素
+                        //    {
+                        //        int num = 0;
+                        //        foreach (ElementGroup elementGroup in stock.ElementGroups)   //对于每一个库存元素组（这里的stock是原始的）
+                        //        {
+                        //            for (int j = 0; j < elementGroup.NumberOfElements; j++)  //对于每一个库存元素组的每一个元素
+                        //            {
+                        //                bool flag10 = gurobiAssignmentVariables[bar.Number * Stock.ElementGroups.Count + num + j].X >= 0.999;       //每个结构杆件是否用了该库存的第j个元素，此时为1的话就是使用了，这里？？？？？
+                        //                if (flag10)
+                        //                {
+                        //                    flag6 = true;
+                        //                    bar.CrossSection = elementGroup.CrossSection;
+                        //                    bar.Material = elementGroup.Material;
+                        //                    bool flag11 = elementGroup.Type == ElementType.Reuse;
+                        //                    if (flag11)
+                        //                    {
+                        //                        assignment.AddElementAssignment(elementGroup, j);
+                        //                    }
+                        //                    else
+                        //                    {
+                        //                        assignment.AddElementAssignment(elementGroup, 0);
+                        //                    }
+                        //                    foreach (LoadCase loadCase3 in LoadCases)
+                        //                    {
+                        //                        bar.AddNormalForce(loadCase3, new List<double>
+                        //                        {
+                        //                            gurobiMemberForceVariables[loadCase3][bar.Number].X
+                        //                        });
+                        //                    }
+                        //                }
+                        //            }
+                        //            num += elementGroup.NumberOfElements;
+                        //        }
+                        //    }
+
+                        //    bool flag12 = !flag6;  //如果结构的杆件没有使用该库存的元素，意味着这个地方没有杆件（既可以被拓扑优化掉）
+                        //    if (flag12)
+                        //    {
+                        //        assignment.AddElementAssignment(stock.ElementGroups[0], 0);
+                        //        bar.CrossSection = new EmptySection();
+                        //        foreach (LoadCase lc in LoadCases)
+                        //        {
+                        //            bar.AddNormalForce(lc, new List<double>
+                        //            {
+                        //                0.0
+                        //            });
+                        //        }
+                        //    }
+
+                        //    bar.SetAssignment(assignment);   //记录每个杆件的分配情况
+                        //}
+                        //Stock.ResetRemainLenghts();
+                        //Stock.ResetRemainLenghtsTemp();
+                        //Stock.ResetAlreadyCounted();
+                        //Stock.ResetNext();
+                        //Structure.SetResults(new Result(Structure, stock, LCA));
+                        //Structure.SetLCA(LCA);
                     }
                     catch (GRBException ex)
                     {

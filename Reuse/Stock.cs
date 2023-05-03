@@ -258,6 +258,7 @@ namespace Beaver3D.Reuse
                 stock.ElementGroups.Add(elementGroup.Clone());
             }
             stock.SortBy = this.SortBy;
+            stock.crossSectionType = this.crossSectionType;
             stock.SortMap = new List<int>();
             foreach (int item in this.SortMap)
             {

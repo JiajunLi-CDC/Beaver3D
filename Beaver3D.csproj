@@ -109,6 +109,7 @@
     </Compile>
     <Compile Include="Optimization\NLPOptimizer.cs" />
     <Compile Include="Optimization\Objective.cs" />
+    <Compile Include="Optimization\OptimizeResultJJ.cs" />
     <Compile Include="Optimization\OptimOptions.cs" />
     <Compile Include="Optimization\Result.cs" />
     <Compile Include="Optimization\SAND\SANDGurobiContinuous.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Optimization\SAND\SANDGurobiDiscreteNP.cs" />
     <Compile Include="Optimization\SAND\SANDGurobiDiscreteRS.cs" />
     <Compile Include="Optimization\SAND\SANDGurobiDistributeJJ.cs" />
+    <Compile Include="Optimization\SAND\SANDGurobiJJ.cs" />
     <Compile Include="Optimization\SAND\SANDGurobiReuse.cs" />
     <Compile Include="Optimization\TopologyOptimization\ContinuousTrussTopologyOptimization.cs" />
     <Compile Include="Optimization\TopologyOptimization\DiscreateMultyStructureReuseOptimization.cs" />
