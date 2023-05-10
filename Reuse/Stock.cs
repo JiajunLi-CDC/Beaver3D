@@ -18,7 +18,7 @@ namespace Beaver3D.Reuse
         // (set) Token: 0x06000054 RID: 84 RVA: 0x00002EB0 File Offset: 0x000010B0
         public SortStockElementsBy SortBy { get; private set; } = SortStockElementsBy.Off;
 
-        public List<ICrossSection> crossSectionType { get; set; } = new List<ICrossSection>();   //不同的截面种类
+        public List<ICrossSection> crossSectionType { get; set; } = new List<ICrossSection>();   //不同的截面种类（这里是筛掉去掉了重复截面但不同长度的）
 
         // Token: 0x1700001D RID: 29
         // (get) Token: 0x06000055 RID: 85 RVA: 0x00002EB9 File Offset: 0x000010B9

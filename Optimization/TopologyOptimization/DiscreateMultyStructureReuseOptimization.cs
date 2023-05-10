@@ -42,11 +42,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
         //优化结果
         public OptimizeResultJJ resultJJ { get; private set; } = new OptimizeResultJJ();
 
-        //生产结果
-        public List<string> ProductionResults { get; set; } = new List<string>();
 
-        //库存使用结果
-        public List<string> StockUseResults { get; set; } = new List<string>();
 
         // 实例化对象
         public DiscreateMultyStructureReuseOptimization(Objective Objective, OptimOptions Options = null)
@@ -252,7 +248,7 @@ namespace Beaver3D.Optimization.TopologyOptimization
                             this.UpperBounds.Add(new Tuple<double, double>(grbmodel.Runtime, grbmodel.ObjVal));
                         }
 
-                        double totalMemberCount = 0;
+                        double totalMemberCount = 0;  //最终生产杆件个数
                         for (int i = 0; i < Stock.ElementGroups.Count; i++)   //每库存个组
                         {
                             for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
@@ -276,7 +272,8 @@ namespace Beaver3D.Optimization.TopologyOptimization
                         }
                         Structure.totalProduce_number = totalMemberCount;
 
-                        this.resultJJ = new OptimizeResultJJ();
+                        this.resultJJ = new OptimizeResultJJ();  //结果记录
+
                         for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
                         {
                             for (int n = 0; n < Stock.crossSectionType.Count; n++)  //针对不同截面组
@@ -313,7 +310,38 @@ namespace Beaver3D.Optimization.TopologyOptimization
                             }
                         }
 
-                        this.ProductionResults = new List<string>();
+                        for (int j = 0; j < Structure.member_prductionLenth.Count; j++)    //对于每个生产的长度
+                        {
+                            for (int n = 0; n < Stock.crossSectionType.Count; n++)  //针对不同截面组
+                            {
+                                MemberProduceType type = new MemberProduceType(Structure.member_prductionLenth[j], Stock.crossSectionType[n].Area, Stock.crossSectionType[n].Name);
+                                List<IMember> cluster = new List<IMember>();
+
+                                for (int i = 0; i < Stock.ElementGroups.Count; i++)   //每库存个组
+                                {
+                                    if (Stock.crossSectionType[n].Name == Stock.ElementGroups[i].CrossSection.Name && Math.Abs(Stock.crossSectionType[n].Area - Stock.ElementGroups[i].CrossSection.Area) < 0.001)
+                                    {//库存组截面等于截面组
+
+                                        foreach (IMember member in Structure.Members)  //对于每个杆件
+                                        {
+                                            IMember1D member1D = (IMember1D)member;
+                                            if (Math.Abs(member1D.Production_length - Structure.member_prductionLenth[j]) < 0.001)  //如果杆件长度等于目标长度
+                                            {
+                                                double use = gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X ;  //每个库存组的相同长度，相同结构的杆件数量
+                                                if (Math.Abs(use - 1) < 0.001)
+                                                {
+                                                    cluster.Add(member);
+                                                    type.memberProduceElement.Add(i);  //使用库存的库存索引
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                this.resultJJ.memberToUseType.Add(type, cluster);  //记录每个构件的使用截面组情况
+                            }
+                        }
+
+                        this.resultJJ.ProductionResults = new List<string>();
                         List<MemberProduceType> keys = new List<MemberProduceType>(this.resultJJ.memberProductionType.Keys);
                         for (int i = 0; i < keys.Count; i++)
                         {
@@ -325,14 +353,14 @@ namespace Beaver3D.Optimization.TopologyOptimization
                                 IMember1D member1D = (IMember1D)value[j];
                                 string tex = "编号num = " + member1D.Number + "，所属结构为structure" + member1D.structure_num + "的杆件，其生产种类为" + i
                                                       + ".......长度为" + key.Length
-                                                      + "，截面为" + key.crossSectionTypeName 
+                                                      + "，截面为" + key.crossSectionTypeName
                                                       + ".......所用库存为长度为" + Stock.ElementGroups[key.memberProduceElement[j]].Length + "的Stock-" + key.memberProduceElement[j]
                                                       + ",一共生产的数量为" + value.Count;
-                                this.ProductionResults.Add(tex);
+                                this.resultJJ.ProductionResults.Add(tex);
                             }
                         }
 
-                        this.StockUseResults = new List<string>();
+                        this.resultJJ.StockUseResults = new List<string>();
                         for (int i = 0; i < Stock.ElementGroups.Count; i++)  //对于每个库存种类
                         {
                             bool flagreuse = Stock.ElementGroups[i].Type == ElementType.Reuse;
@@ -363,10 +391,24 @@ namespace Beaver3D.Optimization.TopologyOptimization
                                     IMember1D member1D = (IMember1D)member;
                                     use1 += gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X;
                                 }
-                                string tex = "库存组" + i + "生产使用的次数为" + use +"，被结构使用的次数为" + use1;
-                                StockUseResults.Add(tex);
+                                string tex = "库存组" + i + "生产使用的次数为" + use + "，被结构使用的次数为" + use1;
+                                this.resultJJ.StockUseResults.Add(tex);
                             }
                         }
+
+                        //this.resultJJ.EachMember_section = new List<double>();  //记录截面大小
+                        //foreach (IMember member in Structure.Members)  //对于每个杆件
+                        //{
+                        //    for (int i = 0; i < Stock.ElementGroups.Count; i++)   //每库存个组
+                        //    {
+                        //        IMember1D member1D = (IMember1D)member;
+                        //        bool used = gurobiAssignmentVariables[member1D.Number * Stock.ElementGroups.Count + i].X >= 0.999;  //该杆件是否使用库存
+                        //        if (used)
+                        //        {
+                        //            this.resultJJ.EachMember_section.Add(Stock.ElementGroups[i].CrossSection.Area);
+                        //        }
+                        //    }
+                        //}
 
 
 
